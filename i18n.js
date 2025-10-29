@@ -3,9 +3,7 @@
   const dictionaries = {
     zh: {
       brand: 'Vista',
-      longitudeHemisphereLabel: '东经 / 西经',
       longitudeLabel: '经度',
-      latitudeHemisphereLabel: '北纬 / 南纬',
       latitudeLabel: '纬度',
       altitudeLabel: '海拔',
       speedLabel: '当前速度',
@@ -33,18 +31,17 @@
       longitudeWest: '西经',
       latitudeNorth: '北纬',
       latitudeSouth: '南纬',
-      detailModuleHidden: '已隐藏信息细节模块',
-      speedModuleHidden: '已隐藏速度模块'
+      moduleSpacing: '模块间距',
+      primaryValueSize: '大字信息字号',
+      contentPadding: '文字与左右页边距'
     },
     en: {
       brand: 'Vista',
-      longitudeHemisphereLabel: 'Longitude East / Longitude West',
       longitudeLabel: 'Longitude',
-      latitudeHemisphereLabel: 'Latitude North / Latitude South',
       latitudeLabel: 'Latitude',
       altitudeLabel: 'Altitude',
       speedLabel: 'Current Speed',
-      timestampLabel: 'Timestamp',
+      timestampLabel: 'Time',
       accuracyLabel: 'Accuracy',
       language: 'Language',
       langZh: 'Chinese',
@@ -64,38 +61,34 @@
       timeout: 'Location request timed out. Please try again.',
       unknownError: 'An unknown error occurred.',
       toggleOn: 'On',
-      longitudeEast: 'Longitude East',
-      longitudeWest: 'Longitude West',
-      latitudeNorth: 'Latitude North',
-      latitudeSouth: 'Latitude South',
-      detailModuleHidden: 'Details module hidden',
-      speedModuleHidden: 'Speed module hidden'
+      longitudeEast: 'East',
+      longitudeWest: 'West',
+      latitudeNorth: 'North',
+      latitudeSouth: 'South',
+      moduleSpacing: 'Module Spacing',
+      primaryValueSize: 'Large Reading Size',
+      contentPadding: 'Text Padding'
     }
   };
 
   let currentLang = localStorage.getItem(STORAGE_KEY) || 'zh';
-  if (!dictionaries[currentLang]) {
-    currentLang = 'zh';
-  }
+  if (!dictionaries[currentLang]) currentLang = 'zh';
 
   const listeners = new Set();
 
   function applyTranslations() {
     document.documentElement.setAttribute('lang', currentLang);
+    document.documentElement.setAttribute('data-lang', currentLang); // 让 CSS 控制显隐
     document.querySelectorAll('[data-i18n]').forEach((el) => {
       const key = el.getAttribute('data-i18n');
       const text = t(key);
-      if (text) {
-        el.textContent = text;
-      }
+      if (text) el.textContent = text;
     });
     listeners.forEach((fn) => fn(currentLang));
   }
 
   function setLang(lang) {
-    if (!dictionaries[lang]) {
-      return;
-    }
+    if (!dictionaries[lang]) return;
     currentLang = lang;
     localStorage.setItem(STORAGE_KEY, currentLang);
     applyTranslations();
@@ -106,11 +99,7 @@
     return dict[key] || key;
   }
 
-  function onLangChange(cb) {
-    if (typeof cb === 'function') {
-      listeners.add(cb);
-    }
-  }
+  function onLangChange(cb) { if (typeof cb === 'function') listeners.add(cb); }
 
   document.addEventListener('DOMContentLoaded', applyTranslations, { once: true });
 

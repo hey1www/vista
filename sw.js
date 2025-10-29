@@ -1,4 +1,4 @@
-const CACHE = 'vista-v1';
+const CACHE = 'vista-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -20,12 +20,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
-        keys.map((key) => {
-          if (key !== CACHE) {
-            return caches.delete(key);
-          }
-          return null;
-        })
+        keys.map((key) => key !== CACHE ? caches.delete(key) : null)
       )
     ).then(() => self.clients.claim())
   );
@@ -37,8 +32,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(request));
     return;
   }
-
-  event.respondWith(
-    caches.match(request).then((cached) => cached || fetch(request))
-  );
+  event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
 });
+
