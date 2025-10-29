@@ -1,5 +1,5 @@
-<!doctype html>
-<html lang="zh-Hans" data-theme="light">
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,119 +7,100 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="styles.css">
-  <script src="i18n.js" defer></script>
-  <script src="app.js" defer></script>
+  <script defer src="i18n.js"></script>
+  <script defer src="app.js"></script>
 </head>
 <body>
-  <div id="overlay" class="overlay" hidden></div>
   <header class="top-bar">
-    <a class="nav-button" href="https://hey1www.github.io" target="_self" rel="noreferrer" data-i18n-attr="aria-label" data-i18n="navBackLabel">
+    <a class="nav-button" href="/" aria-label="home">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M15.5 3.5L7 12l8.5 8.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
       </svg>
     </a>
-    <h1 class="brand mono" data-i18n="appTitle">Vista</h1>
-    <button type="button" id="menu-button" class="nav-button" data-i18n-attr="aria-label" data-i18n="navMenuLabel" aria-expanded="false">
+    <div class="brand mono" data-i18n="brand">Vista</div>
+    <button class="nav-button" id="menu-toggle" aria-label="settings" aria-expanded="false">
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+        <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"></path>
       </svg>
     </button>
   </header>
 
-  <aside id="settings" class="settings" aria-hidden="true">
-    <div class="settings-header">
-      <h2 class="mono" data-i18n="settingsTitle">设置</h2>
-      <button type="button" id="close-settings" class="nav-button" data-i18n-attr="aria-label" data-i18n="navCloseLabel">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
-      </button>
-    </div>
-    <div class="settings-body">
-      <section class="settings-group">
-        <h3 data-i18n="languageLabel">语言</h3>
-        <div class="options">
-          <label class="option">
-            <input type="radio" name="language" id="lang-zh" value="zh">
-            <span data-i18n="languageZh">中文</span>
-          </label>
-          <label class="option">
-            <input type="radio" name="language" id="lang-en" value="en">
-            <span data-i18n="languageEn">English</span>
-          </label>
-        </div>
-      </section>
-      <hr>
-      <section class="settings-group">
-        <h3 data-i18n="themeLabel">颜色模式</h3>
-        <div class="options">
-          <label class="option">
-            <input type="radio" name="theme" id="theme-light" value="light">
-            <span data-i18n="themeLight">浅色</span>
-          </label>
-          <label class="option">
-            <input type="radio" name="theme" id="theme-dark" value="dark">
-            <span data-i18n="themeDark">深色</span>
-          </label>
-        </div>
-      </section>
-      <hr>
-      <section class="settings-group">
-        <h3 data-i18n="detailModuleLabel">信息细节模块</h3>
-        <label class="toggle">
-          <span data-i18n="detailModuleToggle">显示定位时间与精度</span>
-          <input type="checkbox" id="toggle-details" checked>
-        </label>
-      </section>
-      <hr>
-      <section class="settings-group">
-        <h3 data-i18n="speedModuleLabel">当前速度模块</h3>
-        <label class="toggle">
-          <span data-i18n="speedModuleToggle">显示当前速度</span>
-          <input type="checkbox" id="toggle-speed" checked>
-        </label>
-      </section>
-      <hr>
-      <section class="settings-group">
-        <h3 data-i18n="speedUnitLabel">速度单位</h3>
-        <div class="options">
-          <label class="option">
-            <input type="radio" name="speed-unit" id="unit-kmh" value="kmh" checked>
-            <span data-i18n="speedUnitKmh">km/h</span>
-          </label>
-          <label class="option">
-            <input type="radio" name="speed-unit" id="unit-ms" value="ms">
-            <span data-i18n="speedUnitMs">m/s</span>
-          </label>
-        </div>
-      </section>
-    </div>
-  </aside>
+  <div class="backdrop" id="backdrop" hidden></div>
 
-  <main class="content" id="content" aria-live="polite">
-    <p class="label muted" id="longitude-hemisphere">-</p>
-    <p class="value mono" id="longitude-dms">-</p>
-    <p class="label muted" id="latitude-hemisphere">-</p>
-    <p class="value mono" id="latitude-dms">-</p>
-    <p class="label muted" data-i18n="altitudeLabel">海拔</p>
-    <p class="value mono" id="altitude-value">- m</p>
-    <div class="module" data-module="speed">
-      <p class="label muted" id="speed-label" data-i18n="speedLabel">当前速度</p>
-      <p class="value mono" id="speed-value">- km/h</p>
+  <main id="main" class="content">
+    <div class="data-block">
+      <span class="label" data-i18n="longitudeHemisphereLabel">东经 / 西经</span>
+      <div class="value mono" id="longitude-hemisphere">-</div>
     </div>
-    <div class="module" data-module="details">
-      <p class="label muted" id="timestamp-label" data-i18n="timestampLabel">定位获取时间</p>
-      <p class="value mono" id="timestamp-value">-</p>
+    <div class="data-block">
+      <span class="label" data-i18n="longitudeLabel">经度</span>
+      <div class="value mono" id="longitude-value">-</div>
     </div>
-    <div class="module" data-module="details">
-      <p class="label muted" id="accuracy-label" data-i18n="accuracyLabel">定位精度</p>
-      <p class="value mono" id="accuracy-value">± - m</p>
+    <div class="data-block">
+      <span class="label" data-i18n="latitudeHemisphereLabel">北纬 / 南纬</span>
+      <div class="value mono" id="latitude-hemisphere">-</div>
+    </div>
+    <div class="data-block">
+      <span class="label" data-i18n="latitudeLabel">纬度</span>
+      <div class="value mono" id="latitude-value">-</div>
+    </div>
+    <div class="data-block muted">
+      <span class="label" data-i18n="altitudeLabel">海拔</span>
+      <div class="value mono" id="altitude-value">-</div>
+    </div>
+    <div class="data-block muted" data-module="speed">
+      <span class="label" data-i18n="speedLabel">当前速度</span>
+      <div class="value mono" id="speed-value">-</div>
+    </div>
+    <div class="data-block muted" data-module="timestamp">
+      <span class="label" data-i18n="timestampLabel">定位获取时间</span>
+      <div class="value mono" id="timestamp-value">-</div>
+    </div>
+    <div class="data-block muted" data-module="accuracy">
+      <span class="label" data-i18n="accuracyLabel">定位精度</span>
+      <div class="value mono" id="accuracy-value">-</div>
+    </div>
+    <div class="error" id="error" hidden>
+      <p id="error-message"></p>
+      <button id="retry" class="retry-button" data-i18n="retry">重新尝试</button>
     </div>
   </main>
 
-  <section class="status hidden" id="status-message" role="alert">
-    <p id="status-text" data-i18n="statusRequesting">正在请求定位…</p>
-    <button type="button" id="retry-button" data-i18n="retry">重新尝试</button>
-  </section>
+  <aside class="sidebar" id="sidebar" aria-labelledby="menu-toggle" hidden>
+    <div class="sidebar-group">
+      <h2 class="sidebar-title" data-i18n="settings">设置</h2>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="language">语言</div>
+      <label class="option"><input type="radio" name="lang" value="zh"> <span data-i18n="langZh">中文</span></label>
+      <label class="option"><input type="radio" name="lang" value="en"> <span data-i18n="langEn">English</span></label>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="theme">颜色模式</div>
+      <label class="option"><input type="radio" name="theme" value="light"> <span data-i18n="themeLight">浅色</span></label>
+      <label class="option"><input type="radio" name="theme" value="dark"> <span data-i18n="themeDark">深色</span></label>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="detailToggle">信息细节模块</div>
+      <label class="option switch"><input type="checkbox" id="toggle-details" checked> <span data-i18n="toggleOn">开启</span></label>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="speedToggle">当前速度模块</div>
+      <label class="option switch"><input type="checkbox" id="toggle-speed" checked> <span data-i18n="toggleOn">开启</span></label>
+    </div>
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="speedUnit">速度单位</div>
+      <label class="option"><input type="radio" name="speed-unit" value="kmh" checked> <span data-i18n="kmh">km/h</span></label>
+      <label class="option"><input type="radio" name="speed-unit" value="ms"> <span data-i18n="ms">m/s</span></label>
+    </div>
+  </aside>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

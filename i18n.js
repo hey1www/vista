@@ -1,176 +1,118 @@
 (function () {
   const STORAGE_KEY = 'vista-lang';
-
   const dictionaries = {
     zh: {
-      appTitle: 'Vista',
-      navBackLabel: '返回 hey1www.github.io',
-      navMenuLabel: '打开设置',
-      navCloseLabel: '关闭设置',
-      settingsTitle: '设置',
-      languageLabel: '语言',
-      languageZh: '中文',
-      languageEn: 'English',
-      themeLabel: '颜色模式',
-      themeLight: '浅色',
-      themeDark: '深色',
-      detailModuleLabel: '信息细节模块',
-      detailModuleToggle: '显示定位时间与精度',
-      speedModuleLabel: '当前速度模块',
-      speedModuleToggle: '显示当前速度',
-      speedUnitLabel: '速度单位',
-      speedUnitKmh: 'km/h',
-      speedUnitMs: 'm/s',
+      brand: 'Vista',
+      longitudeHemisphereLabel: '东经 / 西经',
+      longitudeLabel: '经度',
+      latitudeHemisphereLabel: '北纬 / 南纬',
+      latitudeLabel: '纬度',
       altitudeLabel: '海拔',
       speedLabel: '当前速度',
       timestampLabel: '定位获取时间',
       accuracyLabel: '定位精度',
-      statusRequesting: '正在请求定位…',
-      statusPermissionDenied: '定位被拒绝，请在浏览器设置中授权。',
-      statusPositionUnavailable: '无法获取当前位置，请检查定位服务。',
-      statusTimeout: '定位超时，请稍后重试。',
-      statusUnknownError: '定位失败，请再次尝试。',
-      statusUnsupported: '此设备或浏览器不支持定位功能。',
+      language: '语言',
+      langZh: '中文',
+      langEn: 'English',
+      theme: '颜色模式',
+      themeLight: '浅色',
+      themeDark: '深色',
+      settings: '设置',
+      detailToggle: '信息细节模块',
+      speedToggle: '当前速度模块',
+      speedUnit: '速度单位',
+      kmh: 'km/h',
+      ms: 'm/s',
       retry: '重新尝试',
-      hemisphere: {
-        lonEast: '东经',
-        lonWest: '西经',
-        latNorth: '北纬',
-        latSouth: '南纬'
-      },
-      units: {
-        kmh: 'km/h',
-        ms: 'm/s',
-        meter: 'm'
-      }
+      permissionDenied: '定位被拒绝，请在浏览器设置中授权。',
+      positionUnavailable: '无法获取位置信息。',
+      timeout: '定位请求超时，请稍后再试。',
+      unknownError: '发生未知错误。',
+      toggleOn: '开启',
+      longitudeEast: '东经',
+      longitudeWest: '西经',
+      latitudeNorth: '北纬',
+      latitudeSouth: '南纬',
+      detailModuleHidden: '已隐藏信息细节模块',
+      speedModuleHidden: '已隐藏速度模块'
     },
     en: {
-      appTitle: 'Vista',
-      navBackLabel: 'Back to hey1www.github.io',
-      navMenuLabel: 'Open settings',
-      navCloseLabel: 'Close settings',
-      settingsTitle: 'Settings',
-      languageLabel: 'Language',
-      languageZh: '中文',
-      languageEn: 'English',
-      themeLabel: 'Color mode',
+      brand: 'Vista',
+      longitudeHemisphereLabel: 'Longitude East / Longitude West',
+      longitudeLabel: 'Longitude',
+      latitudeHemisphereLabel: 'Latitude North / Latitude South',
+      latitudeLabel: 'Latitude',
+      altitudeLabel: 'Altitude',
+      speedLabel: 'Current Speed',
+      timestampLabel: 'Timestamp',
+      accuracyLabel: 'Accuracy',
+      language: 'Language',
+      langZh: 'Chinese',
+      langEn: 'English',
+      theme: 'Color Mode',
       themeLight: 'Light',
       themeDark: 'Dark',
-      detailModuleLabel: 'Information details',
-      detailModuleToggle: 'Show timestamp and accuracy',
-      speedModuleLabel: 'Current speed',
-      speedModuleToggle: 'Show current speed',
-      speedUnitLabel: 'Speed unit',
-      speedUnitKmh: 'km/h',
-      speedUnitMs: 'm/s',
-      altitudeLabel: 'Altitude',
-      speedLabel: 'Current speed',
-      timestampLabel: 'Fix time',
-      accuracyLabel: 'Accuracy',
-      statusRequesting: 'Requesting location…',
-      statusPermissionDenied: 'Location access denied. Please enable it in browser settings.',
-      statusPositionUnavailable: 'Current position unavailable. Check your location services.',
-      statusTimeout: 'Location request timed out. Try again shortly.',
-      statusUnknownError: 'Unable to fetch location. Please try again.',
-      statusUnsupported: 'This device or browser does not support geolocation.',
-      retry: 'Retry',
-      hemisphere: {
-        lonEast: 'E',
-        lonWest: 'W',
-        latNorth: 'N',
-        latSouth: 'S'
-      },
-      units: {
-        kmh: 'km/h',
-        ms: 'm/s',
-        meter: 'm'
-      }
+      settings: 'Settings',
+      detailToggle: 'Information Details',
+      speedToggle: 'Speed Module',
+      speedUnit: 'Speed Unit',
+      kmh: 'km/h',
+      ms: 'm/s',
+      retry: 'Try Again',
+      permissionDenied: 'Location permission denied. Please enable it in browser settings.',
+      positionUnavailable: 'Unable to determine your position.',
+      timeout: 'Location request timed out. Please try again.',
+      unknownError: 'An unknown error occurred.',
+      toggleOn: 'On',
+      longitudeEast: 'Longitude East',
+      longitudeWest: 'Longitude West',
+      latitudeNorth: 'Latitude North',
+      latitudeSouth: 'Latitude South',
+      detailModuleHidden: 'Details module hidden',
+      speedModuleHidden: 'Speed module hidden'
     }
   };
 
-  let currentLang = 'zh';
-
-  function resolve(object, path) {
-    return path.reduce((value, key) => (value && value[key] !== undefined ? value[key] : undefined), object);
+  let currentLang = localStorage.getItem(STORAGE_KEY) || 'zh';
+  if (!dictionaries[currentLang]) {
+    currentLang = 'zh';
   }
 
-  function t(key) {
-    const path = key.split('.');
-    const fromCurrent = resolve(dictionaries[currentLang], path);
-    if (fromCurrent !== undefined) {
-      return fromCurrent;
-    }
-    const fallback = resolve(dictionaries.zh, path) || resolve(dictionaries.en, path);
-    return fallback !== undefined ? fallback : key;
-  }
+  const listeners = new Set();
 
-  function updateElement(el) {
-    const key = el.getAttribute('data-i18n');
-    if (!key) return;
-    const text = t(key);
-    if (text !== undefined) {
-      el.textContent = text;
-    }
-  }
-
-  function updateAttr(el) {
-    const attr = el.getAttribute('data-i18n-attr');
-    const key = el.getAttribute('data-i18n');
-    if (!attr || !key) return;
-    const text = t(key);
-    if (text !== undefined) {
-      el.setAttribute(attr, text);
-    }
-  }
-
-  function applyTranslations(root = document) {
-    const textNodes = root.querySelectorAll('[data-i18n]');
-    textNodes.forEach(updateElement);
-    const attrNodes = root.querySelectorAll('[data-i18n-attr]');
-    attrNodes.forEach(updateAttr);
+  function applyTranslations() {
+    document.documentElement.setAttribute('lang', currentLang);
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      const key = el.getAttribute('data-i18n');
+      const text = t(key);
+      if (text) {
+        el.textContent = text;
+      }
+    });
+    listeners.forEach((fn) => fn(currentLang));
   }
 
   function setLang(lang) {
     if (!dictionaries[lang]) {
-      lang = 'zh';
+      return;
     }
     currentLang = lang;
-    try {
-      localStorage.setItem(STORAGE_KEY, lang);
-    } catch (err) {
-      console.error('Unable to persist language preference', err);
-    }
-    document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
+    localStorage.setItem(STORAGE_KEY, currentLang);
     applyTranslations();
-    window.dispatchEvent(new CustomEvent('vista:lang', { detail: { lang } }));
-    return currentLang;
   }
 
-  function init() {
-    let stored;
-    try {
-      stored = localStorage.getItem(STORAGE_KEY);
-    } catch (err) {
-      stored = null;
-    }
-    const lang = dictionaries[stored] ? stored : 'zh';
-    currentLang = lang;
-    document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => applyTranslations());
-    } else {
-      applyTranslations();
-    }
-    return currentLang;
+  function t(key) {
+    const dict = dictionaries[currentLang] || dictionaries.zh;
+    return dict[key] || key;
   }
 
-  window.I18N = {
-    init,
-    setLang,
-    t,
-    getLang() {
-      return currentLang;
-    },
-    apply: applyTranslations
-  };
+  function onLangChange(cb) {
+    if (typeof cb === 'function') {
+      listeners.add(cb);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', applyTranslations, { once: true });
+
+  window.I18N = { setLang, t, onLangChange, getLang: () => currentLang, dictionaries };
 })();
