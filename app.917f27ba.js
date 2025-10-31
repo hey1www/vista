@@ -6,6 +6,7 @@
   const MODULE_GAP_KEY = 'vista-module-gap';
   const VALUE_SIZE_KEY = 'vista-large-value-size';
   const PADDING_KEY = 'vista-padding-x';
+  const BUILD_VERSION = '2024-05-16';
 
   const html = document.documentElement;
   const errorBox = document.getElementById('error');
@@ -271,5 +272,36 @@
     let wakeLock = null;
     const request = async()=>{ try{ wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release',()=>{ wakeLock=null; }); }catch{} };
     document.addEventListener('click', ()=>{ if(!wakeLock) request(); }, { once:true });
+  }
+
+  // Service Worker 更新，确保新构建立即生效
+  if ('serviceWorker' in navigator) {
+    const swUrl = `./sw.js?v=${BUILD_VERSION}`;
+    let refreshing = false;
+    const skipWaiting = (worker) => { if (worker) worker.postMessage({ type: 'SKIP_WAITING' }); };
+
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      window.location.reload();
+    });
+
+    navigator.serviceWorker
+      .register(swUrl)
+      .then((registration) => {
+        if (registration.waiting) {
+          skipWaiting(registration.waiting);
+        }
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed') {
+              skipWaiting(newWorker);
+            }
+          });
+        });
+      })
+      .catch(() => {});
   }
 })();

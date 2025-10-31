@@ -1,10 +1,11 @@
-const CACHE = 'vista-v2';
-const ASSETS = [
+const BUILD_VERSION = '2024-05-16';
+const STATIC_CACHE = `vista-static-${BUILD_VERSION}`;
+const STATIC_ASSETS = [
   './',
   './index.html',
-  './styles.css',
-  './app.js',
-  './i18n.js',
+  './styles.dbb84747.css',
+  './app.917f27ba.js',
+  './i18n.48418e7b.js',
   './manifest.json',
   './icons/icon-192.png',
   './icons/icon-512.png'
@@ -12,26 +13,46 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches
+      .open(STATIC_CACHE)
+      .then((cache) => cache.addAll(STATIC_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((key) => key !== CACHE ? caches.delete(key) : null)
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys.map((key) => (key !== STATIC_CACHE ? caches.delete(key) : null))
+        )
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  if (request.method !== 'GET' || !request.url.startsWith(self.location.origin)) {
-    event.respondWith(fetch(request));
+  if (request.method !== 'GET') return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('./index.html'))
+    );
     return;
   }
-  event.respondWith(caches.match(request).then((cached) => cached || fetch(request)));
+
+  if (!request.url.startsWith(self.location.origin)) return;
+
+  event.respondWith(
+    caches.match(request).then((cached) => cached || fetch(request))
+  );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
