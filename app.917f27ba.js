@@ -5,6 +5,7 @@
   const SPEED_UNIT_KEY = 'vista-speed-unit';
   const MODULE_GAP_KEY = 'vista-module-gap';
   const VALUE_SIZE_KEY = 'vista-large-value-size';
+  const TITLE_SIZE_KEY = 'vista-title-size';
   const PADDING_KEY = 'vista-padding-x';
   const BUILD_VERSION = '2024-05-16';
 
@@ -41,6 +42,14 @@
   const valueSizeValue = document.getElementById('value-size-value');
   const paddingSlider = document.getElementById('padding-slider');
   const paddingValue = document.getElementById('padding-value');
+  const titleSizeSlider = document.getElementById('title-size-slider');
+  const titleSizeValue = document.getElementById('title-size-value');
+
+  const moduleElements = {
+    timestamp: Array.from(document.querySelectorAll('[data-module~="timestamp"]')),
+    accuracy: Array.from(document.querySelectorAll('[data-module~="accuracy"]')),
+    speed: Array.from(document.querySelectorAll('[data-module~="speed"]')),
+  };
 
   // 存储防崩
   const storage = (() => {
@@ -95,11 +104,9 @@
   }
 
   function toggleModule(module, visible) {
-    document.querySelectorAll('[data-module]').forEach((el) => {
-      const modules = (el.dataset.module || '').split(/\s+/).filter(Boolean);
-      if (!modules.includes(module)) return;
-      if (visible) el.removeAttribute('hidden'); else el.setAttribute('hidden','');
-    });
+    const targets = moduleElements[module];
+    if (!targets) return;
+    targets.forEach((el) => { el.hidden = !visible; });
   }
   function applyModuleVisibility() {
     const showDetails = readPref(DETAILS_KEY) !== 'false';
@@ -246,9 +253,11 @@
   const setVar = (k,v)=> html.style.setProperty(k,v);
   function updateModuleGap(val, persist=true){ const n=Number.parseInt(val,10); const gap=Number.isFinite(n)?n:24; setVar('--gap-y',`${gap}px`); if(spacingSlider) spacingSlider.value=String(gap); if(spacingValue) spacingValue.textContent=`${gap}px`; if(persist) writePref(MODULE_GAP_KEY,String(gap)); }
   function updateLargeValueSize(val,persist=true){ const n=Number.parseInt(val,10); const size=Number.isFinite(n)?n:48; setVar('--big-size',`${size}px`); if(valueSizeSlider) valueSizeSlider.value=String(size); if(valueSizeValue) valueSizeValue.textContent=`${size}px`; if(persist) writePref(VALUE_SIZE_KEY,String(size)); }
+  function updateTitleFontSize(val,persist=true){ const n=Number.parseInt(val,10); const size=Number.isFinite(n)?n:14; setVar('--title-font-size',`${size}px`); if(titleSizeSlider) titleSizeSlider.value=String(size); if(titleSizeValue) titleSizeValue.textContent=`${size}px`; if(persist) writePref(TITLE_SIZE_KEY,String(size)); }
   function updateContentPadding(val,persist=true){ const n=Number.parseInt(val,10); const pad=Number.isFinite(n)?n:20; setVar('--padding-x',`${pad}px`); if(paddingSlider) paddingSlider.value=String(pad); if(paddingValue) paddingValue.textContent=`${pad}px`; if(persist) writePref(PADDING_KEY,String(pad)); }
   if (spacingSlider) spacingSlider.addEventListener('input', e=>updateModuleGap(e.target.value));
   if (valueSizeSlider) valueSizeSlider.addEventListener('input', e=>updateLargeValueSize(e.target.value));
+  if (titleSizeSlider) titleSizeSlider.addEventListener('input', e=>updateTitleFontSize(e.target.value));
   if (paddingSlider)   paddingSlider.addEventListener('input', e=>updateContentPadding(e.target.value));
 
   // 初始化
@@ -257,6 +266,7 @@
   applySpeedUnit();
   updateModuleGap(readPref(MODULE_GAP_KEY), false);
   updateLargeValueSize(readPref(VALUE_SIZE_KEY), false);
+  updateTitleFontSize(readPref(TITLE_SIZE_KEY), false);
   updateContentPadding(readPref(PADDING_KEY), false);
   html.setAttribute('data-lang', I18N.getLang());
   renderReadings(null);

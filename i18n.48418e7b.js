@@ -33,6 +33,7 @@
       latitudeSouth: '南纬',
       moduleSpacing: '模块间距',
       primaryValueSize: '大字信息字号',
+      titleValueSize: '标题信息字号',
       contentPadding: '文字与左右页边距'
     },
     en: {
@@ -67,6 +68,7 @@
       latitudeSouth: 'South',
       moduleSpacing: 'Module Spacing',
       primaryValueSize: 'Large Reading Size',
+      titleValueSize: 'Title Info Size',
       contentPadding: 'Text Padding'
     }
   };

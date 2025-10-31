@@ -36,29 +36,29 @@
 
     <!-- 经度 -->
     <section class="data-block coordinate-block" data-role="longitude">
-      <span class="label lang-zh" id="longitude-label-zh">经度（东经）</span>
-      <span class="label lang-en" id="longitude-label-en">Longitude (East)</span>
+      <span class="label title-label lang-zh" id="longitude-label-zh">经度（东经）</span>
+      <span class="label title-label lang-en" id="longitude-label-en">Longitude (East)</span>
       <div class="value value-large mono lang-zh" id="longitude-value-zh">-</div>
       <div class="value value-large mono lang-en" id="longitude-value-en">-</div>
     </section>
 
     <!-- 纬度 -->
     <section class="data-block coordinate-block" data-role="latitude">
-      <span class="label lang-zh" id="latitude-label-zh">纬度（北纬）</span>
-      <span class="label lang-en" id="latitude-label-en">Latitude (North)</span>
+      <span class="label title-label lang-zh" id="latitude-label-zh">纬度（北纬）</span>
+      <span class="label title-label lang-en" id="latitude-label-en">Latitude (North)</span>
       <div class="value value-large mono lang-zh" id="latitude-value-zh">-</div>
       <div class="value value-large mono lang-en" id="latitude-value-en">-</div>
     </section>
 
     <!-- 海拔 -->
     <section class="data-block muted" data-role="altitude">
-      <span class="label" data-i18n="altitudeLabel">海拔</span>
+      <span class="label title-label" data-i18n="altitudeLabel">海拔</span>
       <div class="value value-large mono" id="altitude-value">- m</div>
     </section>
 
     <!-- 速度（可开关） -->
     <section class="data-block muted" data-role="speed" data-module="speed">
-      <span class="label" data-i18n="speedLabel">当前速度</span>
+      <span class="label title-label" data-i18n="speedLabel">当前速度</span>
       <div class="value value-large mono" id="speed-value">- km/h</div>
     </section>
 
@@ -117,6 +117,14 @@
       <div class="slider-control">
         <input id="value-size-slider" type="range" min="24" max="64" step="1" value="48" />
         <span id="value-size-value" class="mono">48px</span>
+      </div>
+    </div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="titleValueSize">标题信息字号</div>
+      <div class="slider-control">
+        <input id="title-size-slider" type="range" min="12" max="36" step="1" value="14" />
+        <span id="title-size-value" class="mono">14px</span>
       </div>
     </div>
 
