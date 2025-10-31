@@ -45,11 +45,16 @@
   const titleSizeSlider = document.getElementById('title-size-slider');
   const titleSizeValue = document.getElementById('title-size-value');
 
-  const moduleElements = {
-    timestamp: Array.from(document.querySelectorAll('[data-module~="timestamp"]')),
-    accuracy: Array.from(document.querySelectorAll('[data-module~="accuracy"]')),
-    speed: Array.from(document.querySelectorAll('[data-module~="speed"]')),
-  };
+  const moduleRegistry = (() => {
+    const registry = new Map();
+    document.querySelectorAll('[data-module]').forEach((el) => {
+      (el.dataset.module || '').split(/\s+/).filter(Boolean).forEach((name) => {
+        if (!registry.has(name)) registry.set(name, new Set());
+        registry.get(name).add(el);
+      });
+    });
+    return registry;
+  })();
 
   // 存储防崩
   const storage = (() => {
@@ -104,9 +109,12 @@
   }
 
   function toggleModule(module, visible) {
-    const targets = moduleElements[module];
-    if (!targets) return;
-    targets.forEach((el) => { el.hidden = !visible; });
+    const targetSet = moduleRegistry.get(module);
+    if (!targetSet || targetSet.size === 0) return;
+    targetSet.forEach((el) => {
+      if (visible) el.removeAttribute('hidden');
+      else el.setAttribute('hidden', '');
+    });
   }
   function applyModuleVisibility() {
     const showDetails = readPref(DETAILS_KEY) !== 'false';
