@@ -14,11 +14,15 @@
   <!-- 顶栏 -->
   <header class="top-bar">
     <a class="nav-button" href="https://hey1www.github.io" aria-label="home">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 19.5 8 12l7.5-7.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15.5 19.5 8 12l7.5-7.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </a>
-    <div class="brand mono" data-i18n="brand">Vista</div>
+    <div class="brand mono">VISTA</div>
     <button id="menu-toggle" class="nav-button" aria-label="settings" aria-expanded="false">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
+      </svg>
     </button>
   </header>
 
@@ -32,13 +36,10 @@
 
     <!-- 经度 -->
     <section class="data-block coordinate-block" data-role="longitude">
-      <!-- 按语言各自显示（CSS 通过 data-lang 控制） -->
       <span class="label lang-zh" id="longitude-label-zh">经度（东经）</span>
       <span class="label lang-en" id="longitude-label-en">Longitude (East)</span>
       <div class="value value-large mono lang-zh" id="longitude-value-zh">-</div>
       <div class="value value-large mono lang-en" id="longitude-value-en">-</div>
-      <!-- 小字“经度/Longitude”说明行（可选） -->
-      <span class="label" data-i18n="longitudeLabel">经度</span>
     </section>
 
     <!-- 纬度 -->
@@ -47,7 +48,6 @@
       <span class="label lang-en" id="latitude-label-en">Latitude (North)</span>
       <div class="value value-large mono lang-zh" id="latitude-value-zh">-</div>
       <div class="value value-large mono lang-en" id="latitude-value-en">-</div>
-      <span class="label" data-i18n="latitudeLabel">纬度</span>
     </section>
 
     <!-- 海拔 -->
@@ -62,16 +62,15 @@
       <div class="value value-large mono" id="speed-value">- km/h</div>
     </section>
 
-    <!-- 元信息：定位时间 | 定位精度（同一行左右两栏，可开关） -->
-    <section class="info-row">
-      <div class="info-entry" data-module="timestamp">
-        <span class="info-label" data-i18n="timestampLabel">定位获取时间</span>
-        <span class="info-value mono" id="timestamp-value">-</span>
-      </div>
-      <div class="info-entry" data-module="accuracy">
-        <span class="info-label" data-i18n="accuracyLabel">定位精度</span>
-        <span class="info-value mono" id="accuracy-value">-</span>
-      </div>
+    <!-- 定位细节（可开关） -->
+    <section class="data-block detail-block muted" data-role="timestamp" data-module="timestamp">
+      <span class="label" data-i18n="timestampLabel">定位获取时间</span>
+      <div class="value value-compact mono" id="timestamp-value">-</div>
+    </section>
+
+    <section class="data-block detail-block muted" data-role="accuracy" data-module="accuracy">
+      <span class="label" data-i18n="accuracyLabel">定位精度</span>
+      <div class="value value-compact mono" id="accuracy-value">-</div>
     </section>
   </main>
 
@@ -124,16 +123,16 @@
     <div class="sidebar-group">
       <div class="sidebar-label" data-i18n="contentPadding">文字与左右页边距</div>
       <div class="slider-control">
-        <input id="padding-slider" type="range" min="8" max="48" step="1" value="20" />
-        <span id="padding-value" class="mono">20px</span>
+        <input id="padding-slider" type="range" min="8" max="48" step="1" value="28" />
+        <span id="padding-value" class="mono">28px</span>
       </div>
     </div>
   </aside>
 
+  <!-- 脚本 -->
   <script src="i18n.js"></script>
   <script src="app.js"></script>
   <script>
-    // 注册 SW
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
     }

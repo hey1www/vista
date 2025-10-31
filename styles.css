@@ -4,9 +4,9 @@
   --muted: #555555;
   --accent: #888888;
   --surface: rgba(0, 0, 0, 0.05);
-  --gap-y: 24px;
-  --big-size: 48px;
-  --padding-x: 20px;
+  --gap-y: 24px;        /* 模块垂直间距（滑块可调） */
+  --big-size: 48px;     /* 大字字号（滑块可调） */
+  --padding-x: 28px;    /* 页面左右页边距（滑块可调） */
   color-scheme: light dark;
 }
 
@@ -33,21 +33,23 @@ html, body {
   min-height: 100%;
   background: var(--bg);
   color: var(--fg);
-  /* 改为衬线主字族 */
+  /* 全站衬线主字族 */
   font-family: ui-serif, "Noto Serif SC", "Source Serif 4", "Times New Roman", serif;
 }
 
-/* 语言切换：仅显示当前语言节点 */
+/* 语言切换：仅显示当前语言节点（隐藏不占位） */
 :root[data-lang="zh"] .lang-en { display: none !important; }
 :root[data-lang="en"] .lang-zh { display: none !important; }
 
 body { display: flex; flex-direction: column; }
 
+/* 等宽字族给数字与品牌 */
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
   letter-spacing: 0.04em;
 }
 
+/* 顶栏 */
 .top-bar {
   position: sticky; top: 0;
   display: flex; align-items: center; justify-content: space-between;
@@ -58,19 +60,26 @@ body { display: flex; flex-direction: column; }
 .nav-button svg { width:24px; height:24px; fill:currentColor; }
 .brand { font-size:20px; text-transform:uppercase; letter-spacing:0.3em; }
 
+/* 主容器 */
 .content {
   flex:1;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  padding:32px var(--padding-x) 80px;
+  display:flex; flex-direction:column; align-items:stretch; justify-content:center;
+  padding:32px 0 80px;
   gap: var(--gap-y);
 }
 
+/* 模块：统一最大宽度，左对齐；在栅格中居中显示 */
 .data-block {
-  width: min(420px, 100%);
+  width: clamp(0px, calc(100% - 2 * var(--padding-x)), 520px);
+  margin-left: var(--padding-x);
+  margin-right: var(--padding-x);
   text-align: left;
   display: flex; flex-direction: column; gap: 12px;
   align-items: flex-start;
 }
+
+/* 兜底：有旧 HTML 结构时，干掉“重复的小标签” */
+.coordinate-block .label + .value + .label { display: none !important; }
 
 .label {
   font-size: 14px; font-weight: 500; color: var(--muted); letter-spacing: 0.05em;
@@ -85,22 +94,17 @@ body { display: flex; flex-direction: column; }
 
 .coordinate-block { display:flex; flex-direction:column; gap:12px; }
 
-/* 时间 | 精度 同行左右 */
-.info-row {
-  width: 100%;
-  display: flex; flex-direction: row; align-items: baseline; justify-content: space-between;
-  gap: clamp(12px, 4vw, 32px); flex-wrap: wrap;
-}
-.info-entry { display:flex; align-items:baseline; gap:8px; flex:1 1 0; min-width:0; }
-.info-entry:last-child { justify-content:flex-end; margin-left:auto; text-align:right; }
-.info-label { font-size:14px; font-weight:500; color:var(--muted); letter-spacing:0.05em; }
-/* 中文使用全角冒号，英文使用半角冒号 */
-.info-label::after { content: '：'; }
-:root[data-lang="en"] .info-label::after { content: ':'; }
-.info-entry:last-child .info-label { text-align:right; }
-.info-value { white-space: nowrap; }
+/* =============== 定位细节模块 =============== */
+.detail-block { gap: 8px; }
+.detail-block .value { font-size: clamp(16px, 4vw, 20px); }
 
-.error { width:min(420px,100%); padding:24px; background:var(--surface); border-radius:8px; text-align:center; }
+/* =============== 错误提示 =============== */
+.error {
+  width: clamp(0px, calc(100% - 2 * var(--padding-x)), 520px);
+  margin-left: var(--padding-x);
+  margin-right: var(--padding-x);
+  padding:24px; background:var(--surface); border-radius:8px; text-align:center;
+}
 .error p { margin:0 0 16px; font-size:16px; }
 .retry-button { padding:10px 20px; border:none; background:var(--fg); color:var(--bg); font-size:16px; cursor:pointer; border-radius:999px; }
 
@@ -108,13 +112,17 @@ body { display: flex; flex-direction: column; }
   outline: 2px solid var(--fg); outline-offset: 2px;
 }
 
-/* 侧栏 */
+/* =============== 侧栏 =============== */
 .backdrop { position:fixed; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(2px); z-index:20; }
 .sidebar {
   position:fixed; top:0; right:0; width:min(320px,80%); height:100vh;
   background:var(--bg); color:var(--fg);
   box-shadow:-2px 0 10px rgba(0,0,0,.25);
   display:flex; flex-direction:column; padding:24px 20px 40px;
+  overflow-y:auto; /* allow scrolling when content exceeds viewport */
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior:contain;
+  padding-bottom:calc(40px + env(safe-area-inset-bottom, 0px));
   transform: translateX(100%); transition: transform .3s ease; z-index:30;
 }
 .sidebar.open { transform: translateX(0); }
@@ -127,16 +135,22 @@ body { display: flex; flex-direction: column; }
 .slider-control { display:flex; align-items:center; gap:12px; }
 .slider-control input[type="range"] { flex:1; }
 
-/* 窄屏微调 */
+/* =============== 窄屏微调 =============== */
 @media (max-width: 480px) {
-  .content { padding:24px max(16px, var(--padding-x)) 64px; gap: calc(var(--gap-y) * .8); }
+  .content { padding:24px 0 64px; gap: calc(var(--gap-y) * .8); }
+  .data-block,
+  .error {
+    margin-left: max(16px, var(--padding-x));
+    margin-right: max(16px, var(--padding-x));
+    width: clamp(0px, calc(100% - 2 * max(16px, var(--padding-x))), 520px);
+  }
   .value { font-size: clamp(16px, 5vw, 20px); }
   .label { font-size: 12px; }
   .value-large { font-size: min(var(--big-size), 18vw); }
   .value-compact { font-size: clamp(16px, 5vw, 20px); }
 }
 
-/* 横屏高度较小时的缩放 */
+/* =============== 横屏高度较小时的缩放 =============== */
 @media (orientation: landscape) and (max-height: 500px) {
   .content { padding-top:16px; padding-bottom:48px; }
   .value { font-size: clamp(16px, 4vw, 20px); }
@@ -144,19 +158,34 @@ body { display: flex; flex-direction: column; }
   .value-compact { font-size: clamp(16px, 4vw, 20px); }
 }
 
-/* 横屏两栏布局 */
+/* =============== 横屏两栏布局（模块列） =============== */
+/* 模块不拉伸到整列，列内与整体都居中，保留左右留白 */
 @media (orientation: landscape) {
   .content {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: clamp(16px, 4vw, 48px);
+    /* 每列最小 320px，最大 520px；两列居中，左右自然留白 */
+    grid-template-columns: repeat(2, minmax(320px, 520px));
+    column-gap: clamp(12px, 3vw, 24px);
     row-gap: var(--gap-y);
     align-content: center;
-    justify-items: stretch;
+    justify-content: center;  /* 双列整体水平居中 */
+    justify-items: center;    /* 每个模块在各自列里居中 */
+    padding-left: clamp(56px, 6vw, 128px);  /* 比原先更有弹性的左右留白 */
+    padding-right: clamp(56px, 6vw, 128px);
   }
-  .data-block { width: 100%; }
-  .coordinate-block[data-role="longitude"], [data-role="altitude"] { grid-column: 1; }
-  .coordinate-block[data-role="latitude"], [data-role="speed"], .info-row { grid-column: 2; }
-  .info-row { flex-wrap: nowrap; align-items: center; gap: clamp(12px, 3vw, 24px); }
-  .info-entry { flex: 1 1 0; }
+
+  .data-block,
+  .error {
+    margin-left: 0;
+    margin-right: 0;
+    width: min(100%, 520px);
+  }
+
+  .coordinate-block[data-role="longitude"],
+  [data-role="altitude"],
+  [data-role="timestamp"] { grid-column: 1; }
+
+  .coordinate-block[data-role="latitude"],
+  [data-role="speed"],
+  [data-role="accuracy"] { grid-column: 2; }
 }

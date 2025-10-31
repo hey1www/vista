@@ -54,6 +54,23 @@
   let latestPosition = null;
   const geoOptions = { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 };
 
+  function handlePosition(position) {
+    latestPosition = position;
+    renderReadings(position);
+    hideError();
+  }
+  function handleError(error) {
+    latestPosition = null;
+    renderReadings(null);
+    let key = 'unknownError';
+    if (error && typeof error.code === 'number') {
+      if (error.code === 1) { key = 'permissionDenied'; stopWatch(); }
+      else if (error.code === 2) { key = 'positionUnavailable'; }
+      else if (error.code === 3) { key = 'timeout'; }
+    }
+    showError(key);
+  }
+
   function stopWatch() {
     if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
   }
