@@ -2,12 +2,13 @@
   const THEME_KEY = 'vista-theme';
   const DETAILS_KEY = 'vista-show-details';
   const SPEED_KEY = 'vista-show-speed';
+  const LAYOUT_KEY = 'vista-layout-v1';
   const SPEED_UNIT_KEY = 'vista-speed-unit';
   const MODULE_GAP_KEY = 'vista-module-gap';
   const VALUE_SIZE_KEY = 'vista-large-value-size';
   const TITLE_SIZE_KEY = 'vista-title-size';
   const PADDING_KEY = 'vista-padding-x';
-  const BUILD_VERSION = '2024-05-16';
+  const BUILD_VERSION = '2025-11-02';
 
   const html = document.documentElement;
   const errorBox = document.getElementById('error');
@@ -45,21 +46,32 @@
   const titleSizeSlider = document.getElementById('title-size-slider');
   const titleSizeValue = document.getElementById('title-size-value');
 
-  const moduleRegistry = (() => {
-    const registry = new Map();
+  const moduleRegistry = new Map();
+  function refreshModuleRegistry() {
+    moduleRegistry.clear();
     document.querySelectorAll('[data-module]').forEach((el) => {
       (el.dataset.module || '').split(/\s+/).filter(Boolean).forEach((name) => {
-        if (!registry.has(name)) registry.set(name, new Set());
-        registry.get(name).add(el);
+        if (!moduleRegistry.has(name)) moduleRegistry.set(name, new Set());
+        moduleRegistry.get(name).add(el);
       });
     });
-    return registry;
-  })();
+  }
+  refreshModuleRegistry();
 
   // 存储防崩
   const storage = (() => {
-    try { localStorage.setItem('__vista__', '1'); localStorage.removeItem('__vista__'); return localStorage; }
-    catch { return { getItem(){}, setItem(){}, removeItem(){} }; }
+    try {
+      localStorage.setItem('__vista__', '1');
+      localStorage.removeItem('__vista__');
+      return localStorage;
+    } catch {
+      const memory = new Map();
+      return {
+        getItem(key) { return memory.has(key) ? memory.get(key) : null; },
+        setItem(key, value) { memory.set(key, String(value)); },
+        removeItem(key) { memory.delete(key); }
+      };
+    }
   })();
   const readPref = (k) => { try { return storage.getItem(k); } catch { return null; } };
   const writePref = (k,v) => { try { storage.setItem(k,v); } catch {} };
@@ -108,22 +120,255 @@
     themeInputs.forEach(i => { i.checked = (i.value === nextTheme); });
   }
 
-  function toggleModule(module, visible) {
-    const targetSet = moduleRegistry.get(module);
-    if (!targetSet || targetSet.size === 0) return;
-    targetSet.forEach((el) => {
-      if (visible) el.removeAttribute('hidden');
-      else el.setAttribute('hidden', '');
+  function listAllModuleIds() {
+    refreshModuleRegistry();
+    const ids = new Set();
+    moduleRegistry.forEach((set, name) => { if (set && set.size) ids.add(name); });
+    return Array.from(ids);
+  }
+
+  function defaultVisible(id) {
+    if (id === 'speed') return readPref(SPEED_KEY) !== 'false';
+    if (id === 'timestamp' || id === 'accuracy') return readPref(DETAILS_KEY) !== 'false';
+    return true;
+  }
+
+  function loadLayout() {
+    try {
+      const raw = storage.getItem(LAYOUT_KEY);
+      if (!raw) return null;
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return null;
+      return arr.map((item) => ({ id: String(item.id), visible: item.visible !== false }));
+    } catch {
+      return null;
+    }
+  }
+
+  function computeInitialLayout() {
+    return listAllModuleIds().map((id) => ({ id, visible: defaultVisible(id) }));
+  }
+
+  function mergeWithNewModules(saved) {
+    const current = listAllModuleIds();
+    const keep = Array.isArray(saved) ? saved.filter((entry) => current.includes(entry.id)) : [];
+    const savedIds = new Set(keep.map((x) => x.id));
+    const append = current
+      .filter((id) => !savedIds.has(id))
+      .map((id) => ({ id, visible: defaultVisible(id) }));
+    return keep.concat(append);
+  }
+
+  function saveLayout(layout) {
+    try {
+      storage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+    } catch {}
+  }
+
+  function applyLayout(layout) {
+    refreshModuleRegistry();
+    const content = document.querySelector('main.content');
+
+    layout.forEach((item) => {
+      const set = moduleRegistry.get(item.id);
+      if (!set) return;
+      set.forEach((el) => {
+        if (item.visible) el.removeAttribute('hidden');
+        else el.setAttribute('hidden', '');
+      });
+    });
+
+    if (content) {
+      const visibleOrder = layout.filter((item) => item.visible).map((item) => item.id);
+      visibleOrder.forEach((id) => {
+        const set = moduleRegistry.get(id);
+        if (!set) return;
+        Array.from(set).forEach((el) => content.appendChild(el));
+      });
+    }
+
+    const detailsVisible = layout.some(
+      (item) => (item.id === 'timestamp' || item.id === 'accuracy') && item.visible
+    );
+    const speedVisible = layout.some((item) => item.id === 'speed' && item.visible);
+    if (detailsToggle) detailsToggle.checked = detailsVisible;
+    if (speedToggle) speedToggle.checked = speedVisible;
+    writePref(DETAILS_KEY, detailsVisible ? 'true' : 'false');
+    writePref(SPEED_KEY, speedVisible ? 'true' : 'false');
+  }
+
+  function withLayout(mutator, options = {}) {
+    const layout = mergeWithNewModules(loadLayout() || computeInitialLayout());
+    if (typeof mutator === 'function') mutator(layout);
+    saveLayout(layout);
+    applyLayout(layout);
+    if (options.rebuildPanel !== false) buildModulePanel(layout);
+    return layout;
+  }
+
+  function labelForModule(id) {
+    const t = (key) => (window.I18N ? I18N.t(key) : key);
+    const dict = {
+      speed: t('speedLabel'),
+      timestamp: t('timestampLabel'),
+      accuracy: t('accuracyLabel')
+    };
+    return dict[id] || id;
+  }
+
+  function buildModulePanel(layout) {
+    const ul = document.getElementById('module-list');
+    if (!ul) return;
+    ul.innerHTML = '';
+    layout.forEach((item) => {
+      const li = document.createElement('li');
+      li.className = 'module-item';
+      li.draggable = true;
+      li.dataset.id = item.id;
+      li.innerHTML = `
+        <span class="handle" aria-hidden="true">☰</span>
+        <label>
+          <input type="checkbox" class="vis-toggle" ${item.visible ? 'checked' : ''} />
+          <span>${labelForModule(item.id)}</span>
+        </label>
+      `;
+      ul.appendChild(li);
     });
   }
-  function applyModuleVisibility() {
-    const showDetails = readPref(DETAILS_KEY) !== 'false';
-    const showSpeed = readPref(SPEED_KEY) !== 'false';
-    if (detailsToggle) detailsToggle.checked = showDetails;
-    if (speedToggle) speedToggle.checked = showSpeed;
-    toggleModule('timestamp', showDetails);
-    toggleModule('accuracy', showDetails);
-    toggleModule('speed', showSpeed);
+
+  function getDragAfterElement(container, y) {
+    const items = Array.from(container.querySelectorAll('.module-item:not(.dragging)'));
+    return items.reduce(
+      (closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - (box.top + box.height / 2);
+        if (offset < 0 && offset > closest.offset) {
+          return { offset, element: child };
+        }
+        return closest;
+      },
+      { offset: Number.NEGATIVE_INFINITY, element: null }
+    ).element;
+  }
+
+  let draggingItem = null;
+  let modulePanelListenersBound = false;
+
+  function moduleListChangeHandler(event) {
+    if (!event.target.classList.contains('vis-toggle')) return;
+    const li = event.target.closest('.module-item');
+    if (!li) return;
+    const id = li.dataset.id;
+    if (!id) return;
+    const nextVisible = !!event.target.checked;
+    withLayout((layout) => {
+      const entry = layout.find((item) => item.id === id);
+      if (entry) entry.visible = nextVisible;
+    });
+  }
+
+  function moduleListDragStartHandler(event) {
+    const li = event.target.closest('.module-item');
+    if (!li || !li.dataset.id) return;
+    draggingItem = li;
+    li.classList.add('dragging');
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', li.dataset.id || '');
+    }
+  }
+
+  function moduleListDragEndHandler() {
+    if (draggingItem) draggingItem.classList.remove('dragging');
+    draggingItem = null;
+  }
+
+  function moduleListDragOverHandler(event) {
+    event.preventDefault();
+    const container = event.currentTarget;
+    if (!(container instanceof HTMLElement) || !draggingItem) return;
+    const afterElement = getDragAfterElement(container, event.clientY);
+    if (!afterElement) container.appendChild(draggingItem);
+    else container.insertBefore(draggingItem, afterElement);
+  }
+
+  function moduleListDropHandler(event) {
+    event.preventDefault();
+    const container = event.currentTarget;
+    if (!(container instanceof HTMLElement)) return;
+    const ids = Array.from(container.querySelectorAll('.module-item'))
+      .map((li) => li.dataset.id)
+      .filter(Boolean);
+    withLayout((layout) => {
+      const map = new Map(layout.map((item) => [item.id, item]));
+      const reordered = ids.map((id) => map.get(id)).filter(Boolean);
+      layout.length = 0;
+      reordered.forEach((item) => layout.push(item));
+      map.forEach((item, id) => { if (!ids.includes(id)) layout.push(item); });
+    });
+  }
+
+  function ensureModulePanelListeners() {
+    const ul = document.getElementById('module-list');
+    if (!ul || modulePanelListenersBound) return;
+    ul.addEventListener('change', moduleListChangeHandler);
+    ul.addEventListener('dragstart', moduleListDragStartHandler);
+    ul.addEventListener('dragend', moduleListDragEndHandler);
+    ul.addEventListener('dragover', moduleListDragOverHandler);
+    ul.addEventListener('drop', moduleListDropHandler);
+    modulePanelListenersBound = true;
+  }
+
+  let resetBound = false;
+  function ensureResetHandler() {
+    const resetButton = document.getElementById('reset-layout');
+    if (!resetButton || resetBound) return;
+    resetButton.addEventListener('click', () => {
+      try { storage.removeItem(LAYOUT_KEY); } catch {}
+      const layout = mergeWithNewModules(computeInitialLayout());
+      saveLayout(layout);
+      buildModulePanel(layout);
+      applyLayout(layout);
+    });
+    resetBound = true;
+  }
+
+  let legacyBridgeBound = false;
+  function bridgeOldTogglesToLayout() {
+    if (legacyBridgeBound) return;
+    legacyBridgeBound = true;
+    if (detailsToggle) {
+      detailsToggle.addEventListener('change', (event) => {
+        const checked = !!event.target.checked;
+        withLayout((layout) => {
+          layout.forEach((item) => {
+            if (item.id === 'timestamp' || item.id === 'accuracy') item.visible = checked;
+          });
+        });
+      });
+    }
+    if (speedToggle) {
+      speedToggle.addEventListener('change', (event) => {
+        const checked = !!event.target.checked;
+        withLayout((layout) => {
+          const entry = layout.find((item) => item.id === 'speed');
+          if (entry) entry.visible = checked;
+        });
+      });
+    }
+  }
+
+  let layoutPanelInitialized = false;
+  function initLayoutPanel() {
+    if (layoutPanelInitialized && !document.getElementById('module-list')) return;
+    ensureModulePanelListeners();
+    ensureResetHandler();
+    const layout = mergeWithNewModules(loadLayout() || computeInitialLayout());
+    saveLayout(layout);
+    buildModulePanel(layout);
+    applyLayout(layout);
+    bridgeOldTogglesToLayout();
+    layoutPanelInitialized = true;
   }
 
   function applySpeedUnit(unit) {
@@ -245,14 +490,14 @@
     langInputs.forEach(i => { i.checked = (i.value === lang); });
     html.setAttribute('data-lang', lang); // 控制中文/英文节点显隐
     renderReadings(latestPosition);
+    const layout = mergeWithNewModules(loadLayout() || computeInitialLayout());
+    saveLayout(layout);
+    applyLayout(layout);
+    buildModulePanel(layout);
   });
 
   // 主题
   themeInputs.forEach(input => input.addEventListener('change', e => { if (e.target.checked) applyTheme(e.target.value); }));
-
-  // 显示开关
-  if (detailsToggle) detailsToggle.addEventListener('change', e => { writePref(DETAILS_KEY, e.target.checked ? 'true':'false'); applyModuleVisibility(); });
-  if (speedToggle)   speedToggle.addEventListener('change', e => { writePref(SPEED_KEY,   e.target.checked ? 'true':'false'); applyModuleVisibility(); });
 
   // 速度单位
   speedUnitInputs.forEach(i => i.addEventListener('change', e => { if (e.target.checked){ writePref(SPEED_UNIT_KEY, e.target.value); renderReadings(latestPosition);} }));
@@ -270,7 +515,8 @@
 
   // 初始化
   applyTheme(resolvePreferredTheme());
-  applyModuleVisibility();
+  initLayoutPanel();
+  document.addEventListener('DOMContentLoaded', initLayoutPanel, { once: true });
   applySpeedUnit();
   updateModuleGap(readPref(MODULE_GAP_KEY), false);
   updateLargeValueSize(readPref(VALUE_SIZE_KEY), false);
@@ -294,7 +540,7 @@
 
   // Service Worker 更新，确保新构建立即生效
   if ('serviceWorker' in navigator) {
-    const swUrl = `./sw.js?v=${BUILD_VERSION}`;
+    const swUrl = `./sw.js?ver=${BUILD_VERSION}`;
     let refreshing = false;
     const skipWaiting = (worker) => { if (worker) worker.postMessage({ type: 'SKIP_WAITING' }); };
 

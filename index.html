@@ -105,6 +105,15 @@
     </div>
 
     <div class="sidebar-group">
+      <div class="sidebar-label" data-i18n="modulesLabel">模块选择与排序</div>
+      <div class="sidebar-hint" data-i18n="reorderHint">拖动条目可调整顺序，勾选决定是否显示</div>
+      <ul id="module-list" class="module-list" aria-label="模块排序（可拖动）"></ul>
+      <div class="sidebar-row" style="margin-top:8px;">
+        <button id="reset-layout" class="reset-button" data-i18n="resetLayout">重置布局</button>
+      </div>
+    </div>
+
+    <div class="sidebar-group">
       <div class="sidebar-label" data-i18n="moduleSpacing">模块间距</div>
       <div class="slider-control">
         <input id="spacing-slider" type="range" min="8" max="48" step="1" value="24" />

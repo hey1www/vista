@@ -1,5 +1,6 @@
-const BUILD_VERSION = '2024-05-16';
-const STATIC_CACHE = `vista-static-${BUILD_VERSION}`;
+const BUILD_VERSION = '2025-11-02';
+const STATIC_CACHE_PREFIX = 'vista-static-';
+const STATIC_CACHE = `${STATIC_CACHE_PREFIX}${BUILD_VERSION}`;
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -12,25 +13,23 @@ const STATIC_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches
-      .open(STATIC_CACHE)
-      .then((cache) => cache.addAll(STATIC_ASSETS))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(STATIC_CACHE);
+    await cache.addAll(STATIC_ASSETS);
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys.map((key) => (key !== STATIC_CACHE ? caches.delete(key) : null))
-        )
-      )
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((key) => key.startsWith(STATIC_CACHE_PREFIX) && !key.includes(BUILD_VERSION))
+        .map((key) => caches.delete(key))
+    );
+    await self.clients.claim();
+  })());
 });
 
 self.addEventListener('fetch', (event) => {
